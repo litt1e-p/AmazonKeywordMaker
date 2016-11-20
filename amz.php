@@ -150,10 +150,10 @@ class amzkw
 }
 
 $class = new amzkw();
-$singleSeeds = $class->getSeeds('s');
-$doubleASeeds = $class->getSeeds('b');
-$doubleBSeeds = $class->getSeeds('a');
-$seeds = [$singleSeeds, $doubleASeeds, $doubleBSeeds];
+// $singleSeeds = $class->getSeeds('s');
+// $doubleASeeds = $class->getSeeds('b');
+// $doubleBSeeds = $class->getSeeds('a');
+// $seeds = [$singleSeeds, $doubleASeeds, $doubleBSeeds];
 // var_dump(mt_rand(0, count($doubleASeeds)-1));
 // $class->genarate_sample($seeds, 100);
 // var_dump('random_keywords.' . date('Y.m.d.H.i.s', time()) .'.csv');
