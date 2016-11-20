@@ -4,7 +4,7 @@ date_default_timezone_set("Asia/Shanghai");
 class amzkw
 {
 	const DELIMITER = ' ';
-	public $seedFilePath = "keyword_seeds.csv";
+	public $seedFilePath = "keywords.csv";
 	private $genStr = '';
 
 	function getSeeds($level = '') {
@@ -31,9 +31,10 @@ class amzkw
 		}
 		// var_dump($this->genStr);
 		$this->cutArrIfneed($this->genStr, $charsLimit);
-		// var_dump($this->genStr);
+		echo $this->genStr;
 		// return $rs;
-		$this->exportExcel($rs);
+		// $this->exportExcel($rs);
+		// var_dump($rs);
 	}
 
 	function randomFindInArr(&$seeds = []) {
@@ -67,33 +68,40 @@ class amzkw
 		return $rs;
 	}
 
-	function generate($date_workday, $fileSaveName = '') {
+	function generate($charsLimit = 20) {
         $data = $this->readSeedsFromExcel($this->seedFilePath);
         // var_dump($data);
         if (!$data) exit('some error occured!');
-        $duty = [];
-        foreach ($data as $key => $val) {
-            $duty[$key]['departName'] = $val[0];
-            $duty[$key]['name'] = $val[1];
-            $duty[$key]['printTime'] = $val[3];
-            $duty[$key]['duty'] = self :: checkLate($val[3]);
-        }
-        $this->exportExcel(self :: dataSet($duty), array_merge(array('姓名'),$date_workday));
+
+        $rs = [];
+		$currentIndex = -1;
+		while (strlen($this->genStr) <= $charsLimit) {
+			$t = $this->randomFindInArr($data, $rs);
+			if (!empty($t)) {
+				// var_dump($t);
+				// var_dump($seedsGroup);
+				array_push($rs, $t);
+				shuffle($rs);
+				$this->genStr = implode(self :: DELIMITER, $rs);
+			}
+		}
+		// var_dump($this->genStr);
+		$this->cutArrIfneed($this->genStr, $charsLimit);
+		// echo $this->genStr;
+
+        $this->exportExcel(explode(self :: DELIMITER, $this->genStr));
     }
 
 	function readSeedsFromExcel($seedsFile) {
         header('Content-type: text/html; charset=UTF-8');
-        $seedsFile = fopen($seedsFile,'r');
+        $seedsFile = fopen($seedsFile, 'r');
         $rs = array();
-        while ($line=fgetcsv($seedsFile,1000,",")){
+        while ($line = fgetcsv($seedsFile, 1000, ",")){
             foreach ($line as $key => $value) {
-                $line[$key] = iconv('gb2312','utf-8',$value);
+                $rs[] = iconv('gb2312', 'utf-8', $value);
             }
-            $rs[] = $line;
         }
-        //remove title column in excel?
         if ($rs) {
-            unset($rs[0]);
             return $rs;
         }
         return false;
@@ -124,11 +132,18 @@ class amzkw
 	        //     }
 	        //     echo implode("\n",$data);
 	        // }
+	        // if (!empty($data)){
+	        //     foreach($data as $key=>$val){
+         //            $data[$key]=iconv("UTF-8", "GB2312", $val);
+	        //     }
+         //        $data = implode("\t", $data);
+	        //     echo $data;
+	        // }
 	        if (!empty($data)){
-	            foreach($data as $key=>$val){
-                    $data[$key]=iconv("UTF-8", "GB2312", $val);
+	        	foreach($data as $key=>$val){
+                    $data[$key] = iconv("UTF-8", "GB2312", $val);
 	            }
-                $data = implode("\t", $data);
+	            $data = implode(" ", $data);
 	            echo $data;
 	        }
 	    }
@@ -140,7 +155,8 @@ $doubleASeeds = $class->getSeeds('b');
 $doubleBSeeds = $class->getSeeds('a');
 $seeds = [$singleSeeds, $doubleASeeds, $doubleBSeeds];
 // var_dump(mt_rand(0, count($doubleASeeds)-1));
-$class->genarate_sample($seeds, 100);
+// $class->genarate_sample($seeds, 100);
 // var_dump('random_keywords.' . date('Y.m.d.H.i.s', time()) .'.csv');
+$class->generate(1000);
 
 ?>
