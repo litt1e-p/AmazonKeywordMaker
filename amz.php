@@ -1,6 +1,23 @@
 <?php
 ini_set("max_execution_time", "1800");
 date_default_timezone_set("Asia/Shanghai");
+
+function dump($vars, $label = '', $return = false) {
+	if (ini_get('html_errors')) {
+		$content = "<pre>\n";
+		if ($label != '') {
+			$content .= "<strong>{$label} :</strong>\n";
+		}
+		$content .= htmlspecialchars(print_r($vars, true));
+		$content .= "\n</pre>\n";
+	} else {
+		$content = $label . " :\n" . print_r($vars, true);
+	}
+	if ($return) { return $content; }
+	echo $content;
+	return null;
+}
+
 class amzkw
 {
 	const DELIMITER = ' ';
@@ -68,12 +85,40 @@ class amzkw
 		return $rs;
 	}
 
-	function generate($charsLimit = 20) {
+	function generate($charsLimit = 20, $columnNum = 100) {
         $data = $this->readSeedsFromExcel($this->seedFilePath);
-        // var_dump($data);
         if (!$data) exit('some error occured!');
 
-        $rs = [];
+  //       $rs = [];
+		// $currentIndex = -1;
+		// while (strlen($this->genStr) <= $charsLimit) {
+		// 	$t = $this->randomFindInArr($data, $rs);
+		// 	if (!empty($t)) {
+		// 		// var_dump($t);
+		// 		// var_dump($seedsGroup);
+		// 		array_push($rs, $t);
+		// 		shuffle($rs);
+		// 		$this->genStr = implode(self :: DELIMITER, $rs);
+		// 	}
+		// }
+		// // var_dump($this->genStr);
+		// $this->cutArrIfneed($this->genStr, $charsLimit);
+		// // echo $this->genStr;
+
+  //       $this->exportExcel(explode(self :: DELIMITER, $this->genStr));
+  		$rs = [];
+  		for ($i = 0; $i < $columnNum; $i++) { 
+  			$tempData = $this->randomThem($data, $charsLimit);
+  			if (count($tempData) > 0) {
+  				array_push($rs, $tempData);
+  			}
+  		}
+  		// dump($rs);
+  		$this->exportExcel($rs);
+    }
+
+    function randomThem($data, $charsLimit) {
+    	$rs = [];
 		$currentIndex = -1;
 		while (strlen($this->genStr) <= $charsLimit) {
 			$t = $this->randomFindInArr($data, $rs);
@@ -85,11 +130,9 @@ class amzkw
 				$this->genStr = implode(self :: DELIMITER, $rs);
 			}
 		}
-		// var_dump($this->genStr);
 		$this->cutArrIfneed($this->genStr, $charsLimit);
-		// echo $this->genStr;
-
-        $this->exportExcel(explode(self :: DELIMITER, $this->genStr));
+		// dump($this->genStr);
+		return explode(self :: DELIMITER, $this->genStr);
     }
 
 	function readSeedsFromExcel($seedsFile) {
@@ -98,7 +141,7 @@ class amzkw
         $rs = array();
         while ($line = fgetcsv($seedsFile, 1000, ",")){
             foreach ($line as $key => $value) {
-                $rs[] = iconv('gb2312', 'utf-8', $value);
+                $rs[] = iconv('gb2312', 'utf-8', trim($value));
             }
         }
         if ($rs) {
@@ -141,22 +184,19 @@ class amzkw
 	        // }
 	        if (!empty($data)){
 	        	foreach($data as $key=>$val){
-                    $data[$key] = iconv("UTF-8", "GB2312", $val);
+	        		foreach ($val as $ck => $cv) {
+	                    $data[$key][$ck]=iconv("UTF-8", "GB2312", $cv);
+	                }
+                    $data[$key]=implode(" ", $data[$key]);
 	            }
-	            $data = implode(" ", $data);
-	            echo $data;
+	            echo implode("\n",$data);
 	        }
 	    }
 }
 
 $class = new amzkw();
-// $singleSeeds = $class->getSeeds('s');
-// $doubleASeeds = $class->getSeeds('b');
-// $doubleBSeeds = $class->getSeeds('a');
-// $seeds = [$singleSeeds, $doubleASeeds, $doubleBSeeds];
-// var_dump(mt_rand(0, count($doubleASeeds)-1));
+// $seeds = [$class->getSeeds('s'), $class->getSeeds('b'), $class->getSeeds('a')];
 // $class->genarate_sample($seeds, 100);
-// var_dump('random_keywords.' . date('Y.m.d.H.i.s', time()) .'.csv');
-$class->generate(1000);
+$class->generate(800);
 
 ?>
