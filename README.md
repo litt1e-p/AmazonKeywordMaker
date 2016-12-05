@@ -1,2 +1,2 @@
 # AmazonKeywordMaker
-simple tool to generate keywords randomly
+simple tool to generate goods keywords randomly
